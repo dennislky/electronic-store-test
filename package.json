@@ -1,0 +1,26 @@
+{
+  "name": "electronic-store-test",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "prestart": "npm install",
+    "start": "node bin/www",
+    "pretest": "npm install",
+    "test": "cross-env PORT=8001 ./node_modules/.bin/mocha test --exit"
+  },
+  "dependencies": {
+    "chai": "^4.2.0",
+    "chai-http": "^4.3.0",
+    "debug": "~2.6.9",
+    "express": "^4.18.2",
+    "mocha": "^10.2.0",
+    "mocha-junit-reporter": "^1.23.3",
+    "mocha-multi-reporters": "^1.1.7",
+    "mongodb-memory-server": "^6.6.1",
+    "mongoose": "^5.9.24",
+    "morgan": "~1.9.1"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.2"
+  }
+}
