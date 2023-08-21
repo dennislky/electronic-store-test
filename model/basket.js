@@ -1,5 +1,19 @@
 const mongoose = require("mongoose");
 
+const itemSchema = new mongoose.Schema(
+  {
+    productId: {
+      type: Number,
+      required: true,
+      unique: true,
+      index: true,
+    },
+    quantity: Number,
+    actionTimestamp: Number,
+  },
+  { _id: false }
+);
+
 const basketSchema = new mongoose.Schema({
   userId: {
     type: Number,
@@ -8,18 +22,7 @@ const basketSchema = new mongoose.Schema({
     index: true,
     default: 1,
   },
-  items: [
-    {
-      productId: {
-        type: Number,
-        required: true,
-        unique: true,
-        index: true,
-      },
-      quantity: Number,
-      actionTimestamp: Number,
-    },
-  ],
+  items: [itemSchema],
   appliedDiscountDealId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "discountDeal",

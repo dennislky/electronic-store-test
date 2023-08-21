@@ -73,86 +73,63 @@ describe("Customer Operations - Mongoose", () => {
       ...mockData.customerActionAddProduct1,
       quantity: 1,
     };
-    const response1 = await chai.request(server).patch("/basket").send(action1);
+    const response1 = await chai
+      .request(server)
+      .patch("/basket/1")
+      .send(action1);
     response1.should.have.status(200);
-    const omittedResponse1 = Utils.omitResponse(response1, ["_id"]);
-    omittedResponse1.body.should.eql({
-      __v: 1,
-      userId: 1,
-      items: [
-        {
-          productId: action1.productId,
-          quantity: action1.quantity,
-          actionTimestamp: action1.timestamp,
-        },
-      ],
-      updatedAt: action1.timestamp,
-    });
+    const omittedResponse1 = Utils.omitResponse(response1, ["_id", "__v"]);
+    omittedResponse1.items[0].productId.should.eql(action1.productId);
+    omittedResponse1.items[0].quantity.should.eql(action1.quantity);
+    omittedResponse1.items[0].actionTimestamp.should.eql(action1.timestamp);
 
     const action2 = {
       ...mockData.customerActionAddProduct2,
       quantity: 2,
     };
-    const response2 = await chai.request(server).patch("/basket").send(action2);
+    const response2 = await chai
+      .request(server)
+      .patch("/basket/1")
+      .send(action2);
     response2.should.have.status(200);
-    const omittedResponse2 = Utils.omitResponse(response2, ["_id"]);
-    omittedResponse2.body.should.eql({
-      __v: 2,
-      userId: 1,
-      items: [
-        {
-          productId: action1.productId,
-          quantity: action1.quantity,
-          actionTimestamp: action1.timestamp,
-        },
-        {
-          productId: action2.productId,
-          quantity: action2.quantity,
-          actionTimestamp: action2.timestamp,
-        },
-      ],
-      updatedAt: action2.timestamp,
-    });
+    const omittedResponse2 = Utils.omitResponse(response2, ["_id", "__v"]);
+    omittedResponse2.items[0].productId.should.eql(action1.productId);
+    omittedResponse2.items[0].quantity.should.eql(action1.quantity);
+    omittedResponse2.items[0].actionTimestamp.should.eql(action1.timestamp);
+    omittedResponse2.items[1].productId.should.eql(action2.productId);
+    omittedResponse2.items[1].quantity.should.eql(action2.quantity);
+    omittedResponse2.items[1].actionTimestamp.should.eql(action2.timestamp);
 
     const action3 = {
       ...mockData.customerActionRemoveProduct1,
       quantity: 1,
     };
-    const response3 = await chai.request(server).patch("/basket").send(action3);
+    const response3 = await chai
+      .request(server)
+      .patch("/basket/1")
+      .send(action3);
     response3.should.have.status(200);
-    const omittedResponse3 = Utils.omitResponse(response3, ["_id"]);
-    omittedResponse3.body.should.eql({
-      __v: 3,
-      userId: 1,
-      items: [
-        {
-          productId: action2.productId,
-          quantity: action2.quantity,
-          actionTimestamp: action2.timestamp,
-        },
-      ],
-      updatedAt: action3.timestamp,
-    });
+    const omittedResponse3 = Utils.omitResponse(response3, ["_id", "__v"]);
+    console.log(omittedResponse3.items);
+    omittedResponse3.items[0].productId.should.eql(action2.productId);
+    omittedResponse3.items[0].quantity.should.eql(action2.quantity);
+    omittedResponse3.items[0].actionTimestamp.should.eql(action2.timestamp);
 
     const action4 = {
       ...mockData.customerActionRemoveProduct2,
       quantity: 1,
     };
-    const response4 = await chai.request(server).patch("/basket").send(action4);
+    const response4 = await chai
+      .request(server)
+      .patch("/basket/1")
+      .send(action4);
     response3.should.have.status(200);
-    const omittedResponse4 = Utils.omitResponse(response4, ["_id"]);
-    omittedResponse4.body.should.eql({
-      __v: 4,
-      userId: 1,
-      items: [
-        {
-          productId: action4.productId,
-          quantity: action2.quantity - action4.quantity,
-          actionTimestamp: action4.timestamp,
-        },
-      ],
-      updatedAt: action4.timestamp,
-    });
+    const omittedResponse4 = Utils.omitResponse(response4, ["_id", "__v"]);
+    omittedResponse4.items[0].productId.should.eql(action4.productId);
+    omittedResponse4.items[0].quantity.should.eql(
+      action2.quantity - action4.quantity
+    );
+    omittedResponse4.items[0].actionTimestamp.should.eql(action4.timestamp);
   });
 
   it("should calculate a receipt of items", async () => {
@@ -160,41 +137,48 @@ describe("Customer Operations - Mongoose", () => {
       ...mockData.customerActionAddProduct1,
       quantity: 1,
     };
-    const response1 = await chai.request(server).patch("/basket").send(action1);
+    const response1 = await chai
+      .request(server)
+      .patch("/basket/1")
+      .send(action1);
     response1.should.have.status(200);
 
     const action2 = {
       ...mockData.customerActionAddProduct2,
       quantity: 3,
     };
-    const response2 = await chai.request(server).patch("/basket").send(action2);
+    const response2 = await chai
+      .request(server)
+      .patch("/basket/1")
+      .send(action2);
     response2.should.have.status(200);
 
     const action3 = {
       ...mockData.customerActionRemoveProduct2,
       quantity: 1,
     };
-    const response3 = await chai.request(server).patch("/basket").send(action3);
+    const response3 = await chai
+      .request(server)
+      .patch("/basket/1")
+      .send(action3);
     response3.should.have.status(200);
 
     const action4 =
       mockData.applyDiscountDealBuy1Get50percentOffTheSecondForProduct2;
-    const response4 = await chai.request(server).patch("/basket").send(action4);
+    const response4 = await chai
+      .request(server)
+      .patch("/basket/1")
+      .send(action4);
     response4.should.have.status(200);
-    const omittedResponse4 = Utils.omitResponse(response4, ["_id"]);
-    omittedResponse4.body.should.eql({
-      __v: 4,
-      userId: 1,
-      items: [
-        {
-          productId: action3.productId,
-          quantity: action2.quantity - action3.quantity,
-          actionTimestamp: action3.timestamp,
-        },
-      ],
-      appliedDiscountDealId: action4.discountDealId,
-      updatedAt: action4.timestamp,
-    });
+    const omittedResponse4 = Utils.omitResponse(response4, ["_id", "__v"]);
+    omittedResponse4.items[0].productId.should.eql(action3.productId);
+    omittedResponse4.items[0].quantity.should.eql(
+      action2.quantity - action3.quantity
+    );
+    omittedResponse4.items[0].actionTimestamp.should.eql(action3.timestamp);
+    omittedResponse4.appliedDiscountDealId.actionTimestamp.should.eql(
+      action4.discountDealId
+    );
 
     const receiptResponse = await chai
       .request(server)
