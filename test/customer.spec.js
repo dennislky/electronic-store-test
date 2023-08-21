@@ -38,6 +38,15 @@ const mockData = {
     productId: productMockData.productNormal2._id,
     timestamp: 1692547134,
   },
+  customerActionTypeWrong: {
+    action: "wrong",
+    productId: productMockData.productNormal1._id,
+    timestamp: 1692547133,
+  },
+  customerActionTypeMissing: {
+    productId: productMockData.productNormal1._id,
+    timestamp: 1692547133,
+  },
   applyDiscountDealBuy1Get1FreeForProduct1: {
     action: "discountDeal",
     discountDealId:
@@ -136,7 +145,7 @@ describe("Customer Operations - Mongoose", () => {
       .request(server)
       .patch(`/basket/${mockData.userId}`)
       .send(action4);
-    response3.should.have.status(200);
+    response4.should.have.status(200);
     const omittedResponse4 = Utils.omitResponse(response4, ["_id", "__v"]);
     omittedResponse4.items[0].productId
       .toString()
@@ -280,6 +289,82 @@ describe("Customer Operations - Mongoose", () => {
   });
 
   ////// wrong params tests
+  it("should return 400 if basket not exist and action is remove", async () => {
+    const response = await chai
+      .request(server)
+      .patch(`/basket/${mockData.userId}`)
+      .send(mockData.customerActionRemoveProduct1);
+    response.should.have.status(400);
+  });
+
+  it("should return 400 if action type is wrong/missing", async () => {
+    const response1 = await chai
+      .request(server)
+      .patch(`/basket/${mockData.userId}`)
+      .send(mockData.customerActionTypeWrong);
+    response1.should.have.status(400);
+
+    const response2 = await chai
+      .request(server)
+      .patch(`/basket/${mockData.userId}`)
+      .send(mockData.customerActionTypeMissing);
+    response2.should.have.status(400);
+  });
+
+  it("should return 400 if body is missing", async () => {
+    const response = await chai
+      .request(server)
+      .patch(`/basket/${mockData.userId}`);
+    response.should.have.status(400);
+  });
 
   //// concurrency tests
+  it("should not add and remove products to and from a basket concurrently", async () => {
+    const action1 = {
+      ...mockData.customerActionAddProduct1,
+      quantity: 1,
+    };
+    const promise1 = chai
+      .request(server)
+      .patch(`/basket/${mockData.userId}`)
+      .send(action1);
+
+    const action2 = {
+      ...mockData.customerActionAddProduct2,
+      quantity: 2,
+    };
+    const promise2 = chai
+      .request(server)
+      .patch(`/basket/${mockData.userId}`)
+      .send(action2);
+
+    const action3 = {
+      ...mockData.customerActionRemoveProduct1,
+      quantity: 1,
+    };
+    const promise3 = chai
+      .request(server)
+      .patch(`/basket/${mockData.userId}`)
+      .send(action3);
+
+    const action4 = {
+      ...mockData.customerActionRemoveProduct2,
+      quantity: 1,
+    };
+    const promise4 = chai
+      .request(server)
+      .patch(`/basket/${mockData.userId}`)
+      .send(action4);
+
+    const [response1, response2, response3, response4] = await Promise.all([
+      promise1,
+      promise2,
+      promise3,
+      promise4,
+    ]);
+    response1.should.have.status(200);
+    response2.should.have.status(500);
+    response3.should.have.status(400);
+    response4.should.have.status(400);
+  });
 });

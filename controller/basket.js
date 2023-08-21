@@ -9,7 +9,7 @@ const BasketController = {
         switch (action.action) {
           case "add":
             if (!doc) {
-              const doc = new Basket({
+              const basket = new Basket({
                 userId: req.params.id,
                 items: [
                   {
@@ -19,8 +19,8 @@ const BasketController = {
                   },
                 ],
               });
-              await doc.save();
-              res.status(200).json(doc.toJSON());
+              await basket.save();
+              res.status(200).json(basket.toJSON());
             } else {
               const itemIndex = doc.items.findIndex(
                 (item) =>
@@ -55,19 +55,23 @@ const BasketController = {
                   item.productId.toString() === action.productId.toString()
               );
               const item = doc.items[itemIndex];
-              if (item.quantity > action.quantity) {
-                item.quantity -= action.quantity;
-                item.actionTimestamp = action.timestamp;
-                await doc.save();
-                res.status(200).json(doc.toJSON());
-              } else {
-                doc.items.splice(itemIndex, 1);
-                if (!doc.items.length) {
-                  await doc.deleteOne({ userId: req.params.id });
-                } else {
+              if (item) {
+                if (item.quantity > action.quantity) {
+                  item.quantity -= action.quantity;
+                  item.actionTimestamp = action.timestamp;
                   await doc.save();
                   res.status(200).json(doc.toJSON());
+                } else {
+                  doc.items.splice(itemIndex, 1);
+                  if (!doc.items.length) {
+                    await doc.deleteOne({ userId: req.params.id });
+                  } else {
+                    await doc.save();
+                    res.status(200).json(doc.toJSON());
+                  }
                 }
+              } else {
+                res.status(400).json({ errorMessage: "no such item" });
               }
             }
             break;
