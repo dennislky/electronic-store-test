@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "prestart": "npm install",
-    "start": "node bin/www",
+    "start": "nodemon bin/www",
     "pretest": "npm install",
     "test": "cross-env PORT=8001 ./node_modules/.bin/mocha test --exit"
   },
@@ -21,6 +21,7 @@
     "morgan": "~1.9.1"
   },
   "devDependencies": {
-    "cross-env": "^7.0.2"
+    "cross-env": "^7.0.2",
+    "nodemon": "^3.0.1"
   }
 }

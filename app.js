@@ -4,6 +4,7 @@ const logger = require("morgan");
 require("./connection")();
 
 const indexRouter = require("./route/index");
+const productRouter = require("./route/product");
 
 const app = express();
 
@@ -13,5 +14,6 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/", indexRouter);
+app.use("/product", productRouter);
 
 module.exports = app;

@@ -9,6 +9,7 @@ const BasketModel = require("../model/basket");
 
 const { discountDealMockData } = require("./admin.spec");
 
+chai.should();
 chai.use(chaiHttp);
 
 // mock data
@@ -74,7 +75,7 @@ describe("Customer Operations - Mongoose", () => {
     };
     const response1 = await chai.request(server).patch("/basket").send(action1);
     response1.should.have.status(200);
-    const omittedResponse1 = Utils.omitResponse(response1, [_id, createdAt]);
+    const omittedResponse1 = Utils.omitResponse(response1, ["_id"]);
     omittedResponse1.body.should.eql({
       __v: 1,
       userId: 1,
@@ -94,7 +95,7 @@ describe("Customer Operations - Mongoose", () => {
     };
     const response2 = await chai.request(server).patch("/basket").send(action2);
     response2.should.have.status(200);
-    const omittedResponse2 = Utils.omitResponse(response2, [_id, createdAt]);
+    const omittedResponse2 = Utils.omitResponse(response2, ["_id"]);
     omittedResponse2.body.should.eql({
       __v: 2,
       userId: 1,
@@ -119,7 +120,7 @@ describe("Customer Operations - Mongoose", () => {
     };
     const response3 = await chai.request(server).patch("/basket").send(action3);
     response3.should.have.status(200);
-    const omittedResponse3 = Utils.omitResponse(response3, [_id, createdAt]);
+    const omittedResponse3 = Utils.omitResponse(response3, ["_id"]);
     omittedResponse3.body.should.eql({
       __v: 3,
       userId: 1,
@@ -139,7 +140,7 @@ describe("Customer Operations - Mongoose", () => {
     };
     const response4 = await chai.request(server).patch("/basket").send(action4);
     response3.should.have.status(200);
-    const omittedResponse4 = Utils.omitResponse(response4, [_id, createdAt]);
+    const omittedResponse4 = Utils.omitResponse(response4, ["_id"]);
     omittedResponse4.body.should.eql({
       __v: 4,
       userId: 1,
@@ -180,7 +181,7 @@ describe("Customer Operations - Mongoose", () => {
       mockData.applyDiscountDealBuy1Get50percentOffTheSecondForProduct2;
     const response4 = await chai.request(server).patch("/basket").send(action4);
     response4.should.have.status(200);
-    const omittedResponse4 = Utils.omitResponse(response4, [_id, createdAt]);
+    const omittedResponse4 = Utils.omitResponse(response4, ["_id"]);
     omittedResponse4.body.should.eql({
       __v: 4,
       userId: 1,
@@ -208,4 +209,7 @@ describe("Customer Operations - Mongoose", () => {
   });
 
   // advanced tests
+  //// error tests
+
+  //// concurrency tests
 });

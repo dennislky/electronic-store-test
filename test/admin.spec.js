@@ -9,6 +9,7 @@ const Utils = require("./utils");
 const ProductModel = require("../model/product");
 const DiscountDealModel = require("../model/discountDeal");
 
+chai.should();
 chai.use(chaiHttp);
 
 // mock data
@@ -22,6 +23,14 @@ const productMockData = {
     _id: Mongoose.Types.ObjectId("64e244b5cc8b19895a2779d0"),
     name: "productNormal2",
     price: 200,
+  },
+  productMissingName: {
+    _id: Mongoose.Types.ObjectId("64e38649e181603aca5551b7"),
+    price: 100,
+  },
+  productMissingPrice: {
+    _id: Mongoose.Types.ObjectId("64e3864ecaf8769b67dc8a30"),
+    name: "productMissingPrice",
   },
 };
 const discountDealMockData = {
@@ -65,40 +74,36 @@ describe("Admin User Operations - Mongoose", () => {
     const response = await chai
       .request(server)
       .post("/product")
-      .send(mockData.productNormal1);
+      .send(productMockData.productNormal1);
     response.should.have.status(201);
-    const omittedReponse = Utils.omitResponse(response, [
-      _id,
-      __v,
-      createdAt,
-      updatedAt,
-    ]);
-    omittedReponse.body.should.eql(mockData.productNormal1);
+    const omittedReponse = Utils.omitResponse(response, ["_id", "__v"]);
+    omittedReponse.name.should.eql(productMockData.productNormal1.name);
+    omittedReponse.price.should.eql(productMockData.productNormal1.price);
   });
 
   it("should remove a product", async () => {
     const product = await chai
       .request(server)
       .post("/product")
-      .send(mockData.productNormal1);
+      .send(productMockData.productNormal1);
     product.should.have.status(201);
     const response = await chai
       .request(server)
-      .delete(`/product/${product._id}`);
+      .delete(`/product/${product.body._id}`);
     response.should.have.status(200);
-    response.body.should.eql({ productId: product._id });
+    response.body.should.eql({ productId: product.body._id });
   });
 
   it("should add discount deals for products", async () => {
     const product1 = await chai
       .request(server)
       .post("/product")
-      .send(mockData.productNormal1);
+      .send(productMockData.productNormal1);
     product1.should.have.status(201);
     const product2 = await chai
       .request(server)
       .post("/product")
-      .send(mockData.productNormal2);
+      .send(productMockData.productNormal2);
     product2.should.have.status(201);
 
     const discountDeal1 = {
@@ -111,12 +116,7 @@ describe("Admin User Operations - Mongoose", () => {
       .post("/discountDeal")
       .send(discountDeal1);
     response1.should.have.status(201);
-    const omittedReponse1 = Utils.omitResponse(response1, [
-      _id,
-      __v,
-      createdAt,
-      updatedAt,
-    ]);
+    const omittedReponse1 = Utils.omitResponse(response1, ["_id", "__v"]);
     omittedReponse1.body.should.eql(discountDeal1);
 
     const discountDeal2 = {
@@ -129,12 +129,7 @@ describe("Admin User Operations - Mongoose", () => {
       .post("/discountDeal")
       .send(discountDeal2);
     response2.should.have.status(201);
-    const omittedReponse2 = Utils.omitResponse(response2, [
-      _id,
-      __v,
-      createdAt,
-      updatedAt,
-    ]);
+    const omittedReponse2 = Utils.omitResponse(response2, ["_id", "__v"]);
     omittedReponse2.body.should.eql(discountDeal2);
 
     const discountDeal3 = {
@@ -148,16 +143,72 @@ describe("Admin User Operations - Mongoose", () => {
       .post("/discountDeal")
       .send(discountDeal3);
     response3.should.have.status(201);
-    const omittedReponse3 = Utils.omitResponse(response3, [
-      _id,
-      __v,
-      createdAt,
-      updatedAt,
-    ]);
+    const omittedReponse3 = Utils.omitResponse(response3, ["_id", "__v"]);
     omittedReponse3.body.should.eql(discountDeal3);
   });
 
   // advanced tests
+  //// error tests
+  it("should return 400 if name or price is missing when creating product", async () => {
+    const responseMissingName = await chai
+      .request(server)
+      .post("/product")
+      .send(productMockData.productMissingName);
+    responseMissingName.should.have.status(400);
+
+    const responseMissingPrice = await chai
+      .request(server)
+      .post("/product")
+      .send(productMockData.productMissingPrice);
+    responseMissingPrice.should.have.status(400);
+  });
+
+  it("should return 405 if wrong method of / is called", async () => {
+    let response = await chai
+      .request(server)
+      .put("/product")
+      .send(productMockData.productNormal1);
+    response.should.have.status(405);
+
+    response = await chai
+      .request(server)
+      .patch("/product")
+      .send(productMockData.productNormal1);
+    response.should.have.status(405);
+
+    response = await chai
+      .request(server)
+      .delete("/product")
+      .send(productMockData.productNormal1);
+    response.should.have.status(405);
+  });
+
+  it("should return 405 if wrong method of /:id is called", async () => {
+    const product = await chai
+      .request(server)
+      .post("/product")
+      .send(productMockData.productNormal1);
+    product.should.have.status(201);
+
+    let response = await chai
+      .request(server)
+      .post(`/product/${product.body._id}`)
+      .send(productMockData.productNormal1);
+    response.should.have.status(405);
+
+    response = await chai
+      .request(server)
+      .put(`/product/${product.body._id}`)
+      .send(productMockData.productNormal1);
+    response.should.have.status(405);
+
+    response = await chai
+      .request(server)
+      .patch(`/product/${product.body._id}`)
+      .send(productMockData.productNormal1);
+    response.should.have.status(405);
+  });
+  //// concurrency tests
 });
 
 module.exports = { productMockData, discountDealMockData };

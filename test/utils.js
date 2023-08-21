@@ -1,9 +1,9 @@
 // helper function
 const omitResponse = (response, fields) => {
-  if (fields && fields.length !== 0) {
-    fields.forEach((field) => delete response.body[field]);
-  }
-  return response;
+  return fields.reduce((obj, field) => {
+    const { [field]: omit, ...rest } = obj;
+    return rest;
+  }, response.body);
 };
 
 module.exports = {
