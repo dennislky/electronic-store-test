@@ -23,7 +23,8 @@ const BasketController = {
               res.status(200).json(doc.toJSON());
             } else {
               const itemIndex = doc.items.findIndex(
-                (item) => item.productId === action.productId
+                (item) =>
+                  item.productId.toString() === action.productId.toString()
               );
               if (itemIndex >= 0) {
                 const newItems = doc.items.map((item) => {
@@ -50,7 +51,8 @@ const BasketController = {
               res.status(400).json({ errorMessage: "no such basket" });
             } else {
               const itemIndex = doc.items.findIndex(
-                (item) => item.productId === action.productId
+                (item) =>
+                  item.productId.toString() === action.productId.toString()
               );
               const item = doc.items[itemIndex];
               if (item.quantity > action.quantity) {
@@ -68,6 +70,11 @@ const BasketController = {
                 }
               }
             }
+            break;
+          case "discountDeal":
+            doc.appliedDiscountDealId = action.discountDealId;
+            await doc.save();
+            res.status(200).json(doc.toJSON());
             break;
           default:
             res.status(400).json({ errorMessage: "action is wrong/missing" });
@@ -102,7 +109,7 @@ const BasketController = {
       if (doc) {
         res.status(200).json(doc);
       } else {
-        res.status(404).send("ID not found");
+        res.status(404).send("id not found");
       }
       return;
     } catch (err) {
@@ -111,11 +118,82 @@ const BasketController = {
   },
   getBasketReceipt: async (req, res, next) => {
     try {
-      const doc = await Basket.findOne({ id: req.params.id });
-      if (doc) {
-        res.status(200).json(doc);
+      const basket = await Basket.findOne({ userId: req.params.id })
+        .populate({
+          path: "appliedDiscountDealId",
+        })
+        .populate({
+          path: "items",
+          populate: { path: "productId" },
+        });
+      if (basket) {
+        const totalPriceWithoutDiscountDeal = basket.items.reduce(
+          (total, item) => {
+            total += item.productId.price * item.quantity;
+            return total;
+          },
+          0
+        );
+        let discount = 0;
+        const discountDeal = basket.appliedDiscountDealId;
+        switch (discountDeal.type) {
+          case "buy1Get1Free":
+            const itemBuy1Get1Free = basket.items.find(
+              (item) =>
+                item.productId._id.toString() ===
+                discountDeal.productId[0].toString()
+            );
+            if (itemBuy1Get1Free) {
+              discount =
+                itemBuy1Get1Free.productId.price *
+                Math.floor(itemBuy1Get1Free.quantity / 2);
+            }
+            break;
+          case "buy1Get50PercentOffTheSecond":
+            const itemBuy1Get50PercentOffTheSecond = basket.items.find(
+              (item) =>
+                item.productId._id.toString() ===
+                discountDeal.productId[0].toString()
+            );
+            if (itemBuy1Get50PercentOffTheSecond) {
+              discount =
+                itemBuy1Get50PercentOffTheSecond.productId.price *
+                Math.floor(itemBuy1Get50PercentOffTheSecond.quantity / 2) *
+                0.5;
+            }
+            break;
+          case "bundleDiscount":
+            const item1 = basket.items.find(
+              (item) =>
+                item.productId._id.toString() ===
+                discountDeal.productId[0].toString()
+            );
+            const item2 = basket.items.find(
+              (item) =>
+                item.productId._id.toString() ===
+                discountDeal.productId[1].toString()
+            );
+            if (item1 && item2) {
+              discount =
+                Math.min(item1.quantity, item2.quantity) *
+                (item1.productId.price + item2.productId.price) *
+                (1 - discountDeal.percentage);
+            }
+            break;
+          default:
+            res
+              .status(400)
+              .json({ errorMessage: "applied discount deal type is wrong" });
+            return;
+        }
+        const receipt = {
+          purchasedItems: basket.items,
+          appliedDiscountDeal: basket.appliedDiscountDealId,
+          totalPrice: totalPriceWithoutDiscountDeal - discount,
+        };
+        res.status(200).json(receipt);
       } else {
-        res.status(404).send("ID not found");
+        res.status(404).send("userId not found");
       }
       return;
     } catch (err) {

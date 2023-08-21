@@ -50,7 +50,7 @@ const DiscountDealController = {
       if (doc) {
         res.status(200).json(doc);
       } else {
-        res.status(404).send("ID not found");
+        res.status(404).send("id not found");
       }
       return;
     } catch (err) {
