@@ -1,19 +1,15 @@
-const Product = require("../model/product");
+const DiscountDeal = require("../model/discountDeal");
 
-const ProductController = {
+const DiscountDealController = {
   create: async (req, res, next) => {
     try {
       if (req.body) {
-        const product = req.body;
-        if (!product.name) {
-          res.status(400).json({ errorMessage: "name is missing" });
+        const discountDeal = req.body;
+        if (!discountDeal.type) {
+          res.status(400).json({ errorMessage: "type is missing" });
           return;
         }
-        if (!product.price) {
-          res.status(400).json({ errorMessage: "price is missing" });
-          return;
-        }
-        const doc = new Product(req.body);
+        const doc = new DiscountDeal(req.body);
         await doc.save();
         res.status(201).json(doc.toJSON());
       } else {
@@ -26,12 +22,12 @@ const ProductController = {
   },
   delete: async (req, res, next) => {
     try {
-      const doc = await Product.findOne({ _id: req.params.id });
+      const doc = await DiscountDeal.findOne({ _id: req.params.id });
       if (doc && doc._id) {
         await doc.deleteOne({ _id: doc._id });
-        res.status(200).json({ productId: doc._id });
+        res.status(200).json({ discountDealId: doc._id });
       } else {
-        res.status(400).json({ errorMessage: "no such product" });
+        res.status(400).json({ errorMessage: "no such discount deal" });
       }
       return;
     } catch (err) {
@@ -39,18 +35,18 @@ const ProductController = {
       return next(err);
     }
   },
-  getProducts: async (_, res, next) => {
+  getDiscountDeals: async (_, res, next) => {
     try {
-      const arr = await Product.find().sort({ id: "asc" });
+      const arr = await DiscountDeal.find().sort({ id: "asc" });
       res.status(200).json(arr);
       return;
     } catch (err) {
       return next(err);
     }
   },
-  getProduct: async (req, res, next) => {
+  getDiscountDeal: async (req, res, next) => {
     try {
-      const doc = await Product.findOne({ id: req.params.id });
+      const doc = await DiscountDeal.findOne({ id: req.params.id });
       if (doc) {
         res.status(200).json(doc);
       } else {
@@ -66,4 +62,4 @@ const ProductController = {
   },
 };
 
-module.exports = ProductController;
+module.exports = DiscountDealController;
